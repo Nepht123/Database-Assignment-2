@@ -1,17 +1,5 @@
 -- =====================================================================
--- File:     queries.sql
--- Project:  CSC312 Practical Assignment 2
---           Clearpoint Financial Advisors: client, policy and claims database
--- Team:     Power Rangers
--- Members:  Rufaro Ruvarashe Chipoyera (4417552), Ketsia Elengemoke-Mbombo (4397468),
---           Amy Felix (4419804), Harrison Ibeh (4276312),
---           Thiana Moodley (4323023), Nephtali Mwamba (4492340)
---
--- Purpose:  The 10 queries from report section 6 (2 simple, 4 medium,
---           4 complex). Run after schema.sql and data.sql.
---           Every query uses the fixed reference date 2026-10-12 instead of
---           CURDATE(), so all members and the markers get identical results.
---           Each query ends with a semicolon so the script can split them.
+-- This executes the 10 queries and is called by the python script.
 -- =====================================================================
 
 -- Q1 (Simple, Amy Felix): WHERE, ORDER BY
