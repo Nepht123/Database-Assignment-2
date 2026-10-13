@@ -26,7 +26,7 @@ except ImportError:
 
 # queries.sql is in the same folder as this script
 # Updated line: point to the sql subdirectory
-QUERIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sql", "queries.sql")
+QUERIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries.sql")
 
 
 def read_queries():
