@@ -1,12 +1,5 @@
 -- =====================================================================
--- File:     reminders.sql
--- Project:  CSC312 Practical Assignment 2, Clearpoint Financial Advisors
--- Team:     Power Rangers
--- Members:  Rufaro Ruvarashe Chipoyera (4417552), Ketsia Elengemoke-Mbombo (4397468),
---           Amy Felix (4419804), Harrison Ibeh (4276312),
---           Thiana Moodley (4323023), Nephtali Mwamba (4492340)
---
--- Purpose:  Business rule 8. Reminders are not stored; they are produced
+-- This script executes business rule 8. Reminders are not stored; they are produced
 --           by this query from dates already held on POLICY, ADVISER_LICENCE
 --           and CLIENT. Lists every reminder due in the 30 days after the
 --           reference date 2026-10-12, plus anything already overdue.
