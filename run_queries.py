@@ -12,7 +12,7 @@ Members:  Rufaro Ruvarashe Chipoyera (4417552)
 Runs the 10 queries in queries.sql against the CLEARPOINT MySQL database and prints each result as a table.
 To run all queries python run_queries.py and to run a specific query python run_queries.py <query_number>
 The script asks for your MySQL login details. The CLEARPOINT database must already be loaded (schema.sql, then data.sql).
-We were not sure how the tutors will access our database but any team member's login details can be used to access the
+We were not sure how the tutors will access our database but any team member's login details can be used to access it
 """
 
 import getpass
@@ -25,41 +25,65 @@ except ImportError:
     sys.exit("Missing connector. Run:  pip install mysql-connector-python")
 
 # queries.sql is in the same folder as this script
-QUERIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries.sql")
+# Updated line: point to the sql subdirectory
+QUERIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sql", "queries.sql")
 
 
 def read_queries():
-    #Read queries.sql and return a list of (label, question, sql).
-    
+    # Read queries.sql and return a list containing
+    # the label, question, and SQL code for each query.
+
     queries = []
+
     label = ""
     question = ""
     sql = ""
 
-    file = open(QUERIES_FILE, encoding="utf-8")
-    for line in file:
-        line = line.strip()
+    # Open the file and read it one line at a time.
+    with open(QUERIES_FILE, encoding="utf-8") as file:
 
-        if line.startswith("--"):
-            # only read comments that come before the SQL of a query
-            if sql == "":
-                text = line[2:].strip()
-                if text[:1] == "Q" and text[1:2].isdigit():
-                    label = text                   # e.g. "Q7 (Complex, ...)"
+        for line in file:
+            line = line.strip()
+
+            # Check if this line is a comment.
+            if line.startswith("--"):
+
+                # Only read comments before the SQL starts.
+                if sql == "":
+                    text = line[2:].strip()
+
+                    # Check if this comment starts a new question.
+                    if text.startswith("Q") and len(text) > 1 and text[1].isdigit():
+                        label = text
+                        question = ""
+
+                    # Add the question description to the question.
+                    elif label != "" and text != "" and not text.startswith("="):
+                        question = question + text + " "
+
+            # Ignore empty lines.
+            elif line != "":
+
+                # Add this line to the SQL code.
+                sql = sql + line + "\n"
+
+                # A semicolon marks the end of a query.
+                if line.endswith(";"):
+
+                    # Save the query if it has a label.
+                    if label != "":
+                        queries.append((
+                            label,
+                            question.strip(),
+                            sql.strip()
+                        ))
+
+                    # Reset the variables for the next query.
+                    label = ""
                     question = ""
-                elif label != "" and text != "" and not text.startswith("="):
-                    question = question + text + " "
+                    sql = ""
 
-        elif line != "":
-            sql = sql + line + "\n"
-            if line.endswith(";"):                 # end of this query
-                if label != "":
-                    queries.append((label, question.strip(), sql.strip()))
-                label = ""
-                question = ""
-                sql = ""
-
-    file.close()
+    # Return all the queries we collected.
     return queries
 
 
@@ -72,6 +96,7 @@ def query_number(label):
         else:
             break
     return number
+
 
 
 def print_row(values, widths):
@@ -116,65 +141,114 @@ def print_table(columns, rows):
     print(line)
 
 
+
+
 def main():
+    # Check if the queries.sql file exists.
     if not os.path.exists(QUERIES_FILE):
         sys.exit("Cannot find queries.sql. Run the script from the repository folder.")
 
+    # Read all the queries from the file.
     queries = read_queries()
-    wanted = sys.argv[1:]          # e.g. ["7"] to run only Q7
 
-    # ask for the login
+    # Get the query number entered when running the program.
+    # For example: python run_queries.py 7
+    wanted = sys.argv[1:]
+
+    # Ask the user for their MySQL login details.
     print("Enter your MySQL login.\n")
+
     host = input("Host [localhost]: ").strip()
+
+    # Use localhost if the user does not enter a host.
     if host == "":
         host = "localhost"
+
     port = input("Port: ").strip()
+
+    # Check that the port contains only numbers.
     if not port.isdigit():
         sys.exit("Port must be a number.")
+
     user = input("Username: ").strip()
     password = getpass.getpass("Password: ")
+
     database = input("Database [CLEARPOINT]: ").strip()
+
+    # Use CLEARPOINT if the user does not enter a database name.
     if database == "":
         database = "CLEARPOINT"
 
-    # connect
+    # Try to connect to the MySQL database.
     try:
-        conn = mysql.connector.connect(host=host, port=int(port), user=user,
-                                       password=password, database=database)
+        conn = mysql.connector.connect(
+            host=host,
+            port=int(port),
+            user=user,
+            password=password,
+            database=database
+        )
+
+    # Stop the program if the connection fails.
     except mysql.connector.Error as error:
         sys.exit("\nCould not connect: " + str(error))
 
+    # Create a cursor to run SQL queries.
     cursor = conn.cursor()
+
+    # Keep track of how many queries are run and succeed.
     total = 0
     passed = 0
 
+    # Go through each query from queries.sql.
     for label, question, sql in queries:
+
+        # If specific query numbers were entered, skip the others.
         if wanted != [] and query_number(label) not in wanted:
             continue
 
+        # Count this query as one we are going to run.
         total = total + 1
+
+        # Display the query heading and its description.
         print("\n" + "=" * 78)
         print(label)
         print(question)
         print("-" * 78)
 
+        # Try to run the SQL query.
         try:
             cursor.execute(sql)
+
+            # Get all the rows returned by the query.
             rows = cursor.fetchall()
+
+            # Get the column names from the query result.
             columns = []
             for column in cursor.description:
                 columns.append(column[0])
+
+            # Display the results as a table.
             print_table(columns, rows)
+
+            # Display the number of rows returned.
             print(len(rows), "row(s)")
+
+            # Count this query as successful.
             passed = passed + 1
+
+        # Display an error if the SQL query fails.
         except mysql.connector.Error as error:
             print("ERROR running this query:", error)
 
+    # Close the cursor and database connection.
     cursor.close()
     conn.close()
 
+    # Display the final results.
     print("\n" + "=" * 78)
     print(passed, "of", total, "queries ran successfully.")
+
 
 
 main()
