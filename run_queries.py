@@ -11,7 +11,7 @@ Members:  Rufaro Ruvarashe Chipoyera (4417552)
           Nephtali Mwamba            (4492340)
 
 Purpose:  Connects to the Clearpoint MySQL database and runs the 10 queries
-          from sql/queries.sql (report Section 6), printing each query's
+          from queries.sql (report Section 6), printing each query's
           label, business question and results as a table.
 
 Usage:    python run_queries.py            run all 10 queries
@@ -19,11 +19,15 @@ Usage:    python run_queries.py            run all 10 queries
           python run_queries.py --list     list the queries without running them
 
 Setup:    1. pip install mysql-connector-python
-          2. copy config.example.ini to config.ini and enter your own login
-          3. load sql/schema.sql and sql/data.sql into your database first
+          2. load schema.sql and data.sql into your database first
+          3. run the script; it will ask for your MySQL login
+          (optional: a config.ini with a [mysql] section skips the prompts)
+
+The script will ask for login details and we were not sure how the tutors can login and access our database but login details for anyone of us will work :) 
 """
 
 import configparser
+import getpass
 import os
 import re
 import sys
@@ -37,15 +41,22 @@ except ImportError:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(HERE, "config.ini")
-QUERIES_FILE = os.path.join(HERE, "sql", "queries.sql")
+
+
+def find_queries_file():
+    """Look for queries.sql next to the script, or in a sql/ subfolder."""
+    for path in (os.path.join(HERE, "queries.sql"),
+                 os.path.join(HERE, "sql", "queries.sql")):
+        if os.path.exists(path):
+            return path
+    return os.path.join(HERE, "queries.sql")
+
+
+QUERIES_FILE = find_queries_file()
 
 
 def load_config(path=CONFIG_FILE):
-    """Read the database login from config.ini, so each member edits one file only."""
-    if not os.path.exists(path):
-        raise FileNotFoundError(
-            f"{os.path.basename(path)} not found. Copy config.example.ini to config.ini "
-            "and enter your own MySQL login details.")
+    """Read the database login from config.ini (optional shortcut to skip the prompts)."""
     parser = configparser.ConfigParser()
     parser.read(path)
     if "mysql" not in parser:
@@ -57,6 +68,34 @@ def load_config(path=CONFIG_FILE):
         "user": db.get("user"),
         "password": db.get("password", ""),
         "database": db.get("database"),
+    }
+
+def ask(prompt, default=None, secret=False):
+    """Prompt for a value. Shows [default] only if one is given; keeps asking if a required value is blank."""
+    suffix = f" [{default}]" if default else ""
+    text = f"{prompt}{suffix}: "
+    while True:
+        value = getpass.getpass(text) if secret else input(text)
+        value = value.strip() or default or ""
+        if value or secret:          # password may be left blank
+            return value
+        print(f"  {prompt} is required.")
+
+
+def prompt_config():
+    """Ask the person running the script for their MySQL login."""
+    print("Enter your MySQL login.\n")
+    while True:
+        port = ask("Port")
+        if port.isdigit():
+            break
+        print("  Port must be a number.")
+    return {
+        "host": ask("Host", "localhost"),
+        "port": int(port),
+        "user": ask("Username"),
+        "password": ask("Password", secret=True),
+        "database": ask("Database", "CLEARPOINT"),
     }
 
 
@@ -133,9 +172,10 @@ def connect(cfg):
         return mysql.connector.connect(**cfg)
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            msg = "Access denied: check the user and password in config.ini."
+            msg = "Access denied: check the username and password."
         elif err.errno in (errorcode.ER_BAD_DB_ERROR, errorcode.ER_DBACCESS_DENIED_ERROR):
-            msg = f"Database '{cfg['database']}' does not exist: check the database name in config.ini."
+            msg = (f"Database '{cfg['database']}' does not exist: "
+                   "check the database name, and that schema.sql and data.sql were loaded.")
         elif err.errno in (2003, 2005):
             msg = f"Cannot reach MySQL at {cfg['host']}:{cfg['port']}: is the server running?"
         else:
@@ -147,7 +187,8 @@ def main(argv):
     try:
         queries = load_queries()
     except FileNotFoundError:
-        print(f"Cannot find {QUERIES_FILE}. Run the script from the repository folder.")
+        print(f"Cannot find queries.sql next to {os.path.basename(__file__)}. "
+              "Run the script from the repository folder.")
         return 1
 
     if "--list" in argv:
@@ -165,15 +206,18 @@ def main(argv):
             return 1
 
     try:
-        cfg = load_config()
+        cfg = load_config() if os.path.exists(CONFIG_FILE) else prompt_config()
         conn = connect(cfg)
-    except (FileNotFoundError, KeyError, ValueError, ConnectionError) as err:
+    except (KeyError, ValueError, ConnectionError) as err:
         print(f"Setup problem: {err}")
+        return 1
+    except (KeyboardInterrupt, EOFError):
+        print("\nCancelled.")
         return 1
 
     passed = 0
     try:
-        print(f"Connected to '{cfg['database']}' on {cfg['host']}:{cfg['port']} "
+        print(f"\nConnected to '{cfg['database']}' on {cfg['host']}:{cfg['port']} "
               f"(MySQL {getattr(conn, 'server_info', None) or conn.get_server_info()})\n")
         for label, question, sql in selected:
             passed += run_query(conn, label, question, sql)
