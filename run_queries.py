@@ -9,14 +9,10 @@ Members:  Rufaro Ruvarashe Chipoyera (4417552)
           Thiana Moodley             (4323023)
           Nephtali Mwamba            (4492340)
 
-Purpose:  Runs the 10 queries in queries.sql against the CLEARPOINT MySQL
-          database and prints each result as a table.
-
-Usage:    pip install mysql-connector-python
-          python run_queries.py        run all queries
-          python run_queries.py 7      run only Q7
-          The script asks for your MySQL login. The CLEARPOINT database must
-          already be loaded (schema.sql, then data.sql).
+Runs the 10 queries in queries.sql against the CLEARPOINT MySQL database and prints each result as a table.
+To run all queries python run_queries.py and to run a specific query python run_queries.py <query_number>
+The script asks for your MySQL login details. The CLEARPOINT database must already be loaded (schema.sql, then data.sql).
+We were not sure how the tutors will access our database but any team member's login details can be used to access the
 """
 
 import getpass
@@ -33,13 +29,8 @@ QUERIES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queries
 
 
 def read_queries():
-    """Read queries.sql and return a list of (label, question, sql).
-
-    Each query is written as comment lines followed by the SQL, for example:
-        -- Q7 (Complex, Amy Felix): short title
-        -- The business question in plain words
-        SELECT ... ;
-    """
+    #Read queries.sql and return a list of (label, question, sql).
+    
     queries = []
     label = ""
     question = ""
@@ -73,7 +64,7 @@ def read_queries():
 
 
 def query_number(label):
-    """Return the number in a label, e.g. 'Q7 (Complex...)' gives '7'."""
+    #Return the number in a label, e.g. 'Q7 (Complex...)' gives '7'.
     number = ""
     for character in label[1:]:
         if character.isdigit():
@@ -84,7 +75,7 @@ def query_number(label):
 
 
 def print_row(values, widths):
-    """Print one row of the table."""
+    #Print one row of the table.
     cells = []
     for i in range(len(values)):
         cells.append(values[i].ljust(widths[i]))
@@ -92,7 +83,7 @@ def print_row(values, widths):
 
 
 def print_table(columns, rows):
-    """Print the column names and rows as a text table."""
+    #Print the column names and rows as a text table.
     # turn every value into text (NULL for empty values)
     text_rows = []
     for row in rows:
