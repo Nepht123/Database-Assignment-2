@@ -9,8 +9,6 @@ UNION ALL SELECT 'product',             COUNT(*), 20 FROM product
 UNION ALL SELECT 'policy',              COUNT(*), 34 FROM policy
 UNION ALL SELECT 'claim',               COUNT(*), 16 FROM claim;
 
--- Fingerprint: catches edited values, not just missing rows.
--- Expected: total_premium = 40418.00, total_claimed = 548000.00, open_claims = 8
 SELECT (SELECT SUM(premium_amount) FROM policy)          AS total_premium,
        (SELECT SUM(claim_amount)   FROM claim)           AS total_claimed,
        (SELECT COUNT(*) FROM claim WHERE closed_date IS NULL) AS open_claims;
