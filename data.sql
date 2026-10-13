@@ -10,8 +10,7 @@
 --           Thiana Moodley             (4323023)
 --           Nephtali Mwamba            (4492340)
 --
--- Purpose:  Loads the fixed sample data. Run schema.sql first, then this
---           file, in your own schema in MySQL Workbench.
+-- Loads the fixed sample data. 
 --
 -- Rules so all six databases stay identical:
 --   * Every primary key value and every date is fixed. Do not edit rows
