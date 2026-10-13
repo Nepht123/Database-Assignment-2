@@ -34,16 +34,26 @@ ORDER BY date_reported;
 -- Q3 (Medium, Thiana Moodley): INNER JOIN, CONCAT, LIKE
 -- Contact list of every client in the Western Cape (postal codes 7xxx and
 -- 8xxx) with the adviser responsible for them.
-SELECT CONCAT(c.first_name, ' ', c.last_name)  AS client_name,
-       c.phone                                  AS client_phone,
-       c.address_city                           AS city,
-       CONCAT(a.first_name, ' ', a.last_name)  AS adviser_name,
-       a.email                                  AS adviser_email
-FROM client c
-INNER JOIN adviser a ON a.adviser_id = c.adviser_id
-WHERE c.address_postal_code LIKE '7%'
-   OR c.address_postal_code LIKE '8%'
-ORDER BY adviser_name, client_name;
+
+SELECT
+    CONCAT(client.first_name, ' ', client.last_name) AS client_name,
+    client.phone AS client_phone,
+    client.address_city AS city,
+    CONCAT(adviser.first_name, ' ', adviser.last_name) AS adviser_name,
+    adviser.email AS adviser_email
+
+FROM client
+
+INNER JOIN adviser
+    ON adviser.adviser_id = client.adviser_id
+
+WHERE client.address_postal_code LIKE '7%'
+   OR client.address_postal_code LIKE '8%'
+
+ORDER BY
+    adviser_name,
+    client_name;
+
 
 -- Q4 (Medium, Harrison Ibeh): INNER JOIN, COUNT, SUM, AVG, GROUP BY
 -- How do insurance and investment products compare in number of active
