@@ -153,7 +153,6 @@ HAVING SUM(claim.claim_amount) > (SELECT AVG(adviser_total)
 
     ) AS adviser_totals
 )
-
 ORDER BY total_claimed DESC;
 
 
