@@ -1,16 +1,4 @@
--- =====================================================================
--- File:     verify.sql
--- Project:  CSC312 Practical Assignment 2, Clearpoint Financial Advisors
--- Team:     Power Rangers
--- Members:  Rufaro Ruvarashe Chipoyera (4417552), Ketsia Elengemoke-Mbombo (4397468),
---           Amy Felix (4419804), Harrison Ibeh (4276312),
---           Thiana Moodley (4323023), Nephtali Mwamba (4492340)
---
--- Purpose:  Run after schema.sql and data.sql. Screenshot the result and
---           post it in the group chat. If every number matches the
---           EXPECTED column, your database is identical to everyone else's.
--- =====================================================================
-
+-- this script verifies if the database has been created
 SELECT 'adviser'             AS table_name, COUNT(*) AS row_count,  5 AS expected FROM adviser
 UNION ALL SELECT 'adviser_licence',     COUNT(*),  9 FROM adviser_licence
 UNION ALL SELECT 'client',              COUNT(*), 15 FROM client
