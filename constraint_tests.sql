@@ -1,18 +1,5 @@
 -- =====================================================================
--- File:     constraint_tests.sql
--- Project:  CSC312 Practical Assignment 2, Clearpoint Financial Advisors
--- Team:     Power Rangers
--- Members:  Rufaro Ruvarashe Chipoyera (4417552), Ketsia Elengemoke-Mbombo (4397468),
---           Amy Felix (4419804), Harrison Ibeh (4276312),
---           Thiana Moodley (4323023), Nephtali Mwamba (4492340)
---
--- Purpose:  Negative tests for section 8. EVERY statement below must FAIL.
---           Run them ONE AT A TIME in Workbench (cursor on the line, then
---           Ctrl+Enter) and screenshot the red error in the Output panel.
---           Nothing is changed when a statement fails, so your data stays
---           identical to everyone else's.
--- =====================================================================
-
+-- This scripts runs all the "bad" constraints to check if the database implementation is accurate. Successful checks should throw errors.
 -- T1 (Amy) Foreign key: claim against a policy that does not exist.
 -- Expected: Error 1452, fk_claim_policy
 INSERT INTO claim (claim_id, policy_id, claim_number, incident_date,
