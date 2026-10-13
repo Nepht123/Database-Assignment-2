@@ -70,22 +70,30 @@ def load_config(path=CONFIG_FILE):
         "database": db.get("database"),
     }
 
-
 def ask(prompt, default=None, secret=False):
-    """Prompt for a value; Enter accepts the default. Passwords are not echoed."""
+    """Prompt for a value. Shows [default] only if one is given; keeps asking if a required value is blank."""
     suffix = f" [{default}]" if default else ""
     text = f"{prompt}{suffix}: "
-    value = getpass.getpass(text) if secret else input(text)
-    return value.strip() or default or ""
+    while True:
+        value = getpass.getpass(text) if secret else input(text)
+        value = value.strip() or default or ""
+        if value or secret:          # password may be left blank
+            return value
+        print(f"  {prompt} is required.")
 
 
 def prompt_config():
     """Ask the person running the script for their MySQL login."""
-    print("Enter your MySQL login (press Enter to accept the [default]).\n")
+    print("Enter your MySQL login.\n")
+    while True:
+        port = ask("Port")
+        if port.isdigit():
+            break
+        print("  Port must be a number.")
     return {
         "host": ask("Host", "localhost"),
-        "port": int(ask("Port", "3306")),
-        "user": ask("Username", "root"),
+        "port": int(port),
+        "user": ask("Username"),
         "password": ask("Password", secret=True),
         "database": ask("Database", "CLEARPOINT"),
     }
