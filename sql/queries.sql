@@ -162,27 +162,49 @@ ORDER BY total_claimed DESC;
 -- expires within 60 days, while still managing clients with active
 -- policies? FAIS requires advisers to be licensed, so these renewals are
 -- urgent.
-SELECT CONCAT(a.first_name, ' ', a.last_name) AS adviser_name,
-       COUNT(DISTINCT c.client_id)  AS clients_with_active_policies,
-       COUNT(po.policy_id)                    AS active_policies,
-       (SELECT MIN(l2.expiry_date)
-        FROM adviser_licence l2
-        WHERE l2.adviser_id = a.adviser_id
-          AND l2.expiry_date <=
+
+SELECT
+    CONCAT(adviser.first_name, ' ', adviser.last_name) AS adviser_name,
+
+    COUNT(DISTINCT client.client_id) AS clients_with_active_policies,
+
+    COUNT(policy.policy_id) AS active_policies,
+
+    (
+        SELECT MIN(adviser_licence.expiry_date)
+        FROM adviser_licence
+        WHERE adviser_licence.adviser_id = adviser.adviser_id
+          AND adviser_licence.expiry_date <=
               DATE_ADD(DATE '2026-10-12', INTERVAL 60 DAY)
-       )                                      AS earliest_problem_licence
-FROM adviser a
-JOIN client c  ON c.adviser_id = a.adviser_id
-JOIN policy po ON po.client_id = c.client_id
-WHERE po.status = 'Active'
-  AND a.adviser_id IN (
-        SELECT l.adviser_id
-        FROM adviser_licence l
-        WHERE l.expiry_date < DATE '2026-10-12'
-           OR (l.expiry_date >= DATE '2026-10-12'
-               AND l.expiry_date <=
-                   DATE_ADD(DATE '2026-10-12', INTERVAL 60 DAY))
-      )
-GROUP BY a.adviser_id, a.first_name, a.last_name
-HAVING COUNT(po.policy_id) >= 1
+    ) AS earliest_problem_licence
+
+FROM adviser
+
+JOIN client
+    ON adviser.adviser_id = client.adviser_id
+
+JOIN policy
+    ON client.client_id = policy.client_id
+
+WHERE policy.status = 'Active'
+
+    AND adviser.adviser_id IN (
+        SELECT adviser_licence.adviser_id
+        FROM adviser_licence
+        WHERE adviser_licence.expiry_date < DATE '2026-10-12'
+
+           OR (
+                adviser_licence.expiry_date >= DATE '2026-10-12'
+                AND adviser_licence.expiry_date <=
+                    DATE_ADD(DATE '2026-10-12', INTERVAL 60 DAY)
+           )
+    )
+
+GROUP BY
+    adviser.adviser_id,
+    adviser.first_name,
+    adviser.last_name
+
+HAVING COUNT(policy.policy_id) >= 1
+
 ORDER BY earliest_problem_licence;
